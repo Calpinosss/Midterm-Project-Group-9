@@ -1,0 +1,34 @@
+import React from 'react';
+
+const paths = {
+  home: 'M3 10.5 12 3l9 7.5v9.3a1.2 1.2 0 0 1-1.2 1.2H4.2A1.2 1.2 0 0 1 3 19.8v-9.3Zm5 10.5v-6h8v6',
+  search: 'm21 21-4.8-4.8m2.3-5.2A7.5 7.5 0 1 1 3.5 11a7.5 7.5 0 0 1 15 0Z',
+  calendar: 'M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 4h14M8 2v4m8-4v4m-7 7h2m2 0h2m-6 4h2m2 0h2',
+  bell: 'M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4',
+  settings: 'M12 15.2A3.2 3.2 0 1 0 12 8.8a3.2 3.2 0 0 0 0 6.4Zm7.2-3.2a7.6 7.6 0 0 0-.1-1.2l2-1.5-1.8-3.1-2.4 1a8.3 8.3 0 0 0-2-1.2L14.6 3h-3.2l-.3 3a8.3 8.3 0 0 0-2 1.2l-2.4-1-1.8 3.1 2 1.5A7.6 7.6 0 0 0 6.8 12c0 .4 0 .8.1 1.2l-2 1.5 1.8 3.1 2.4-1a8.3 8.3 0 0 0 2 1.2l.3 3h3.2l.3-3a8.3 8.3 0 0 0 2-1.2l2.4 1 1.8-3.1-2-1.5c.1-.4.1-.8.1-1.2Z',
+  logout: 'M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10m5-12 4 4-4 4m4-4H9',
+  chevron: 'm8 10 4 4 4-4',
+  arrowRight: 'M5 12h14m-6-5 5 5-5 5',
+  arrowLeft: 'M19 12H5m6 5-5-5 5-5',
+  plus: 'M12 5v14m-7-7h14',
+  close: 'M6 6l12 12M18 6 6 18',
+  menu: 'M4 7h16M4 12h16M4 17h16',
+  users: 'M16 20v-1.2a4.8 4.8 0 0 0-9.6 0V20M11.2 10a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Zm6.1 0a2.7 2.7 0 1 0 0-5.4m2.9 15.4v-1a4.1 4.1 0 0 0-3-4',
+  star: 'm12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z',
+  clock: 'M12 7v5l3.3 2m6-2a9.3 9.3 0 1 1-18.6 0 9.3 9.3 0 0 1 18.6 0Z',
+  check: 'm5 12 4 4L19 6',
+  x: 'm6 6 12 12M18 6 6 18',
+  filter: 'M4 6h16M7 12h10m-7 6h4',
+  spark: 'M12 3v4m0 10v4M5.6 5.6l2.8 2.8m6.8 6.8 2.8 2.8M3 12h4m10 0h4M5.6 18.4l2.8-2.8m6.8-6.8 2.8-2.8',
+  profile: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0',
+  book: 'M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15ZM4 20.5A2.5 2.5 0 0 1 6.5 18H20',
+};
+
+export function Icon({ name, size = 18, stroke = 1.8 }) {
+  const d = paths[name] || paths.spark;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={d} />
+    </svg>
+  );
+}
