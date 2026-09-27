@@ -1,0 +1,13 @@
+# Store every text file with LF in the repository, and check it out as LF too.
+# Without this, git's Windows checkout rewrites the files to CRLF while the Linux
+# Actions runner reads LF, so a group member on Windows and one on macOS/Linux end
+# up with different bytes for the same commit and diffs turn into whole-file noise.
+* text=auto eol=lf
+
+# Windows launchers are the exception: they only work with CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Keep the wireframes and lockfile diff-stable.
+*.svg text eol=lf
+*.md text eol=lf
