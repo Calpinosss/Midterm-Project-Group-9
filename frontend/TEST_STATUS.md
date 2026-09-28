@@ -6,7 +6,7 @@ Run from the project root (`PCL-Tutor-Midterm-Final-Polished`):
 
 ```bash
 npm run lint   # eslint . -> clean
-npm test       # vitest run -> 7 files, 86 tests passed
+npm test       # vitest run -> 7 files, 91 tests passed
 npm run build  # vite build -> success
 ```
 
@@ -15,6 +15,7 @@ npm run build  # vite build -> success
 | Seeded data | `src/test/data.test.js` | Schedules differ per tutor, offline slots always carry a room and online slots never do, an online-only tutor stays online-only, no duplicate times or double bookings, every request resolves to a real session, the generator is reproducible, and the availability seed is a deep copy that cannot mutate the fixture |
 | Availability UX | `src/test/availability.test.jsx` | The open-slots panel lists the *published* slots on a fresh load and agrees with the agenda and the week strip, publishing/removing report what happened, removal asks first and is undoable, a duplicate publish is explained instead of silently ignored, Enter does not publish, and "Add another slot" focuses the form rather than doing nothing |
 | Confirmation | `src/test/confirm.test.jsx` | The dialog is a labelled modal, runs the action only on confirm, cancels on the button, Escape, the backdrop, and Tab wrapping, returns focus to the control that opened it, focuses **Cancel** so a reflexive Enter dismisses instead of acting, and a cancelled log out leaves the session intact |
+| Selection | `src/test/forms.test.jsx` | The custom `SelectField` that replaced every native `<select>`: the choice is exposed as a checked radio, a chip reports its value, a long list opens a panel, the placeholder shows until something is picked, and Escape closes the panel |
 | Form guard | `src/test/forms.test.jsx` | `blockImplicitSubmit` blocks a plain Enter in a field but leaves textareas, buttons, links, editable text, and Ctrl+Enter alone; the profile form does not save on Enter and the Save button still works; the tutor "Suggest another time" form does not send on Enter, still accepts a newline in its message box, and keeps the draft after the review is cancelled |
 | Booking lock | `src/test/booking.test.jsx` | An in-person published slot is locked to the tutor's room, an online one names no room, both submit the slot's own format, Enter does not send the request, a stale `?time=` is refused, a custom request can propose Offline with its own place, the request is reviewed before it is sent, cancelling the review keeps the typed topic, and validation still runs on the form rather than the review step |
 | Publishing | `src/test/booking.test.jsx` | A tutor cannot publish an in-person slot without a room, and a published room reaches the availability calendar intact |

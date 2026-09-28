@@ -172,16 +172,27 @@ describe('booking a published slot', () => {
     const user = userEvent.setup();
     renderApp('/booking?tutor=t1');
 
-    const dateSelect = await screen.findByLabelText(/^date$/i);
-    const timeSelect = screen.getByLabelText(/available time/i);
+    // The date control is a chip group and the time control is a panel, so the same
+    // assertions read off the replacement widgets rather than native <option> elements.
+    const dateChips = await screen.findByRole('radiogroup', { name: 'Date' });
+    const timeTrigger = screen.getByRole('button', { name: /Available time/ });
 
     for (const [date, slots] of Object.entries(tutor.availability)) {
-      await user.selectOptions(dateSelect, date);
-      const labels = within(timeSelect).getAllByRole('option').map((option) => option.textContent);
+      // The chip label is a formatted date, so match on the value the chip carries
+      // rather than rebuilding the same Intl format inside the test.
+      const target = within(dateChips).getAllByRole('radio')
+        .find((node) => node.getAttribute('id').endsWith(`-${date}`));
+      expect(target, `date ${date} should be offered`).toBeTruthy();
+      await user.click(target);
+
+      await user.click(timeTrigger);
+      const panel = screen.getByRole('radiogroup', { name: 'Available time' });
+      const labels = within(panel).getAllByRole('radio').map((option) => option.textContent);
       slots.forEach((slot) => {
         const expected = `${slot.time} · ${slot.mode}${slot.mode === 'Offline' ? ` · ${slot.location}` : ''}`;
         expect(labels, `${date} ${slot.time}`).toContain(expected);
       });
+      await user.keyboard('{Escape}');
     }
   });
 
@@ -214,7 +225,8 @@ describe('booking a custom time', () => {
     await user.click(screen.getByRole('button', { name: 'Offline' }));
     await user.type(await screen.findByLabelText(/location/i), 'Library study zone');
     await user.type(screen.getByLabelText(/^topic$/i), 'Pointers and ownership');
-    await user.type(screen.getByLabelText(/preferred time/i), '15:00');
+    // The preferred time is a chip row now, not a clock input the OS paints.
+    await user.click(within(screen.getByRole('radiogroup', { name: 'Preferred time' })).getByRole('radio', { name: '15:00' }));
 
     // The live summary must show the proposed place, not just the mode.
     expect(within(liveSummary()).getByText('Library study zone')).toBeInTheDocument();
@@ -236,7 +248,7 @@ describe('booking a custom time', () => {
     await user.click(await screen.findByRole('button', { name: /custom time/i }));
     await user.click(screen.getByRole('button', { name: 'Offline' }));
     await user.type(screen.getByLabelText(/^topic$/i), 'Pointers and ownership');
-    await user.type(screen.getByLabelText(/preferred time/i), '15:00');
+    await user.click(within(screen.getByRole('radiogroup', { name: 'Preferred time' })).getByRole('radio', { name: '15:00' }));
     await user.click(screen.getByRole('button', { name: /submit request/i }));
 
     expect(await screen.findByText(/add a meeting location/i)).toBeInTheDocument();
@@ -270,7 +282,12 @@ describe('booking a custom time', () => {
     await user.click(screen.getByRole('button', { name: 'Offline' }));
     await user.type(await screen.findByLabelText(/location/i), 'Library study zone');
 
-    await user.selectOptions(screen.getByLabelText(/^tutor$/i), 't2');
+    // Six tutors is too many to show as chips, so the control opens a panel. Pick the
+    // tutor by its visible name rather than by the value a native option carried.
+    await user.click(screen.getByRole('button', { name: /Tutor/ }));
+    const tutorPanel = screen.getByRole('radiogroup', { name: 'Tutor' });
+    await user.click(within(tutorPanel).getByRole('radio', { name: TUTORS[1].name }));
+
     await user.click(screen.getByRole('button', { name: 'Offline' }));
     expect(screen.getByLabelText(/location/i)).toHaveValue('');
   });

@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { blockImplicitSubmit } from '../lib/forms';
 import { STUDENT, TUTOR, cancelDialog, renderApp, signInAs } from './helpers';
+import SelectField from '../components/SelectField';
 
 // Browsers submit a form when Enter lands in a text field. That is right for a search
 // box or a sign-in form, and wrong for the forms that publish, send, or save.
@@ -55,6 +57,90 @@ describe('blockImplicitSubmit', () => {
       blockImplicitSubmit(event);
       expect(event.preventDefault).not.toHaveBeenCalled();
     });
+  });
+});
+
+// The browser paints a native <select> popup itself, so it cannot be themed and it
+// overflows a phone viewport. These cover the replacement control's wiring instead.
+describe('SelectField', () => {
+  const Harness = ({ initial = 'b', onChange = () => {} }) => {
+    const [value, setValue] = useState(initial);
+    return (
+      <SelectField
+        label="Pick one"
+        value={value}
+        onChange={(next) => { setValue(next); onChange(next); }}
+        options={['a', 'b', 'c']}
+      />
+    );
+  };
+
+  it('exposes the choice as a radiogroup with the current value checked', () => {
+    render(<Harness />);
+    const group = screen.getByRole('radiogroup', { name: 'Pick one' });
+    expect(within(group).getByRole('radio', { name: 'b' })).toHaveAttribute('aria-checked', 'true');
+    expect(within(group).getByRole('radio', { name: 'a' })).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('reports the chosen value when a chip is pressed', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+
+    await user.click(screen.getByRole('radio', { name: 'c' }));
+
+    expect(onChange).toHaveBeenCalledWith('c');
+    expect(screen.getByRole('radio', { name: 'c' })).toHaveAttribute('aria-checked', 'true');
+  });
+
+  // A long list becomes a panel, which is the case that used to open an OS-styled popup.
+  it('opens a panel for a long list and selects from it', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const many = Array.from({ length: 12 }, (_, i) => `Option ${i + 1}`);
+    render(
+      <SelectField label="Duration" value="Option 1" onChange={onChange} options={many} />,
+    );
+
+    const trigger = screen.getByRole('button', { name: /Duration/ });
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await user.click(trigger);
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    const panel = screen.getByRole('radiogroup', { name: 'Duration' });
+    await user.click(within(panel).getByRole('radio', { name: 'Option 5' }));
+
+    expect(onChange).toHaveBeenCalledWith('Option 5');
+    expect(screen.queryByRole('radiogroup', { name: 'Duration' })).not.toBeInTheDocument();
+  });
+
+  it('keeps the placeholder visible until something is chosen', async () => {
+    const user = userEvent.setup();
+    render(<SelectField label="Slot" value="" options={['09:00', '10:00', '11:30', '13:00', '14:30']} onChange={() => {}} placeholder="Select a slot" />);
+
+    // A real native <select> names a button "Slot" and prints the options, so a query
+    // for the placeholder alone used to work by accident. The trigger here is a button
+    // carrying both the label and the current value, which is what a screen reader needs
+    // when the field is still empty.
+    const trigger = screen.getByRole('button', { name: /Slot/ });
+    expect(trigger).toHaveTextContent('Select a slot');
+    expect(trigger).toHaveClass('empty');
+    expect(trigger).toHaveAccessibleName(/Slot\s+Select a slot/);
+
+    await user.click(trigger);
+    expect(screen.getByRole('radiogroup', { name: 'Slot' })).toBeInTheDocument();
+  });
+
+  it('closes on Escape without changing the value', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} initial="b" />);
+
+    const trigger = screen.getByRole('radio', { name: 'a' });
+    await user.click(trigger);
+    await user.keyboard('{Escape}');
+
+    expect(onChange).toHaveBeenCalledWith('a');
   });
 });
 

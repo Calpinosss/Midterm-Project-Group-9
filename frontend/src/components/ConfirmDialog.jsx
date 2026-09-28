@@ -1,11 +1,12 @@
 import React, { useEffect, useId, useRef } from 'react';
 import { Icon } from './icons';
 
+// No native select: SelectField renders its choices as buttons, so they are already
+// covered by the first entry and would otherwise be listed twice by querySelectorAll.
 const FOCUSABLE = [
   'button:not([disabled])',
   '[href]',
   'input:not([disabled])',
-  'select:not([disabled])',
   'textarea:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
 ].join(', ');

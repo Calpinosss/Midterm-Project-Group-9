@@ -147,9 +147,9 @@ h3 { font-size:18px; line-height:1.15; letter-spacing:-.025em; }
 .role-switch-caption { font-size:11px; color:var(--ink-3); }
 .login-form { display:grid; gap:14px; }
 .login-form label,.form-card label,.availability-form label { display:grid; gap:7px; font-size:12px; font-weight:800; color:var(--ink-2); }
-.login-form input,.form-card input,.form-card textarea,.form-card select,.availability-form input,.availability-form select { min-height:46px; padding:0 13px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink); }
+.login-form input,.form-card input,.form-card textarea,.availability-form input { min-height:46px; padding:0 13px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink); }
 .form-card textarea { min-height:112px; padding:13px; resize:vertical; }
-.login-form input:focus,.form-card input:focus,.form-card textarea:focus,.form-card select:focus,.availability-form input:focus,.availability-form select:focus { border-color:color-mix(in srgb,var(--accent) 55%,var(--line)); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 10%,transparent); outline:none; }
+.login-form input:focus,.form-card input:focus,.form-card textarea:focus,.availability-form input:focus { border-color:color-mix(in srgb,var(--accent) 55%,var(--line)); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 10%,transparent); outline:none; }
 .demo-note { display:grid; gap:3px; margin-top:18px; padding:12px 13px; border-radius:9px; background:var(--surface-soft); color:var(--ink-2); font-size:11px; }
 .demo-note strong { color:var(--ink); }
 .form-error { display:flex; align-items:center; gap:9px; padding:10px 12px; border-radius:9px; color:var(--danger); background:color-mix(in srgb,var(--danger) 8%,transparent); border:1px solid color-mix(in srgb,var(--danger) 18%,var(--line)); font-size:12px; }
@@ -411,6 +411,226 @@ h3 { font-size:18px; line-height:1.15; letter-spacing:-.025em; }
 @keyframes popover-in { from { opacity:0; transform:translateY(-6px) scale(.98); } to { opacity:1; transform:none; } }
 @keyframes drawer-in { from { transform:translateX(100%); } to { transform:none; } }
 
+/* SelectField: the replacement for <select>.
+
+   A native select's option list is drawn by the browser, not by the page, so no amount
+   of `appearance:none` or a custom arrow background reaches it. Opening a themed select
+   produced a plain white list that ignored --surface and --line and could extend past the
+   edge of a phone viewport, because that popup is not part of the document box. Rendering
+   the options as real buttons puts them back under the theme tokens and inside the page
+   flow, so the control can no longer overflow. */
+.select-field { position:relative; display:block; min-width:0; }
+.select-field .field-label { margin-bottom:7px; }
+
+/* Chips: a short set that can be read at a glance, matching .filter-chip and .mode-toggle. */
+.select-chip-row { display:flex; flex-wrap:wrap; gap:7px; }
+.select-chip {
+  min-height:43px;
+  padding:0 14px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--surface);
+  color:var(--ink-2);
+  font-size:11px;
+  font-weight:800;
+  transition:border-color .2s var(--ease), color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+}
+.select-chip:hover { border-color:var(--line-strong); color:var(--ink); }
+.select-chip.selected {
+  border-color:var(--accent);
+  color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 7%,var(--surface));
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 7%,transparent);
+}
+.select-chip:focus-visible,
+.select-trigger:focus-visible,
+.select-option:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+/* Panel: for a longer list, where a wrapping chip grid would push the form off screen. */
+.select-trigger {
+  width:100%;
+  min-height:46px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:0 13px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--surface);
+  color:var(--ink);
+  font-size:12px;
+  font-weight:700;
+  text-align:left;
+  cursor:pointer;
+  transition:border-color .2s var(--ease), background .2s var(--ease);
+}
+.select-trigger:hover { border-color:var(--line-strong); }
+.select-trigger.open { border-color:color-mix(in srgb,var(--accent) 55%,var(--line)); }
+.select-trigger.empty { color:var(--ink-3); font-weight:600; }
+.select-trigger svg { flex:0 0 auto; color:var(--ink-3); transition:transform .2s var(--ease); }
+.select-trigger.open svg { transform:rotate(180deg); }
+
+.select-panel {
+  position:absolute;
+  z-index:60;
+  top:calc(100% + 6px);
+  left:0;
+  right:0;
+  max-height:260px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  display:grid;
+  gap:2px;
+  padding:6px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--surface);
+  box-shadow:0 18px 40px rgba(18,21,26,.16);
+  animation:popover-in .18s var(--ease);
+}
+.select-option {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-height:40px;
+  padding:0 10px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:var(--ink-2);
+  font-size:12px;
+  font-weight:700;
+  text-align:left;
+  cursor:pointer;
+}
+.select-option:hover { background:var(--surface-soft); color:var(--ink); }
+.select-option.selected { background:var(--accent-soft); color:var(--accent); }
+.select-option.selected svg { flex:0 0 auto; }
+
+/* The date on the booking form's Custom time path.
+
+   A date stays a native input: the calendar is a free-form grid the student may jump
+   around in, and it is not a list, so there is nothing to enumerate the way a <select>
+   needs. That does mean the browser still paints the field, so the two things it draws
+   have to be pulled into the theme by hand: the indicator button, and the numeric
+   segments of the value itself.
+
+   The time is the opposite case and is handled separately below. */
+/* position:relative anchors the indicator to the input; the rest of the box is the same
+   display:grid the .form-card label rule already gives every field in this form. */
+.native-datetime { position:relative; display:grid; gap:7px; min-width:0; }
+.native-datetime input[type="date"] {
+  -webkit-appearance:none;
+  appearance:none;
+  width:100%;
+  min-width:0;
+  height:46px;
+  /* Padding on the right is reserved for the indicator, otherwise the calendar glyph
+     lands on top of the year segment. */
+  padding:0 44px 0 13px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--surface);
+  color:var(--ink);
+  font-family:inherit;
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:.01em;
+  line-height:46px;
+  cursor:pointer;
+  transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
+}
+.native-datetime input[type="date"]:hover { border-color:var(--line-strong); }
+.native-datetime input[type="date"]:focus {
+  border-color:color-mix(in srgb,var(--accent) 55%,var(--line));
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 10%,transparent);
+  outline:none;
+}
+/* An empty field still has to read as fillable, so the placeholder inherits the muted ink
+   rather than the full value colour. */
+.native-datetime input:invalid { color:var(--ink-3); }
+.native-datetime input::placeholder { color:var(--ink-3); }
+
+/* The editable value is its own shadow tree: the day/month/year runs are separate boxes,
+   so they have to be lined out with the surrounding label by hand. */
+.native-datetime input[type="date"]::-webkit-datetime-edit,
+.native-datetime input[type="date"]::-webkit-datetime-edit-fields-wrapper { padding:0; }
+.native-datetime input[type="date"]::-webkit-datetime-edit-year-field,
+.native-datetime input[type="date"]::-webkit-datetime-edit-month-field,
+.native-datetime input[type="date"]::-webkit-datetime-edit-day-field {
+  padding:0 1px;
+  color:var(--ink);
+  font-weight:600;
+}
+
+/* The indicator is the only part of the control the UA still paints, so it is restyled
+   into an inline glyph: same stroke colour as the label, same optical size as the text. */
+.native-datetime input[type="date"]::-webkit-calendar-picker-indicator {
+  position:absolute;
+  right:13px;
+  width:15px;
+  height:15px;
+  padding:0;
+  border:0;
+  opacity:.5;
+  cursor:pointer;
+  filter:none;
+  transition:opacity .2s var(--ease);
+}
+.native-datetime input[type="date"]:hover::-webkit-calendar-picker-indicator,
+.native-datetime input[type="date"]:focus::-webkit-calendar-picker-indicator { opacity:1; }
+
+/* Preferred time on the same Custom time path, as hourly chips.
+
+   An input[type=time] is edited through a clock face the OS paints, which no stylesheet
+   can reach: it comes up as an unstyled blue list that ignores --surface and --line and
+   cannot be brought into the theme. A chip row keeps the options in the document, so the
+   same tokens the rest of the form uses apply to them. The tutor's own published slots are
+   hourly, so hourly precision is not a reduction here. */
+.custom-time-field { min-width:0; display:grid; gap:7px; }
+/* Eight chips in one half of a two-column row would wrap to a tall ragged column beside
+   the date, so the time takes the full width of the section underneath it instead. */
+.custom-schedule-grid .custom-time-field { grid-column:1 / -1; }
+.custom-time-grid {
+  display:grid;
+  /* minmax(0,1fr) rather than 1fr: a plain 1fr track still has a min-content floor, and
+     five HH:MM labels at 12px overflow the card on a narrow phone. */
+  grid-template-columns:repeat(auto-fit,minmax(84px,1fr));
+  gap:8px;
+}
+.custom-time-chip {
+  min-width:0;
+  min-height:44px;
+  padding:0 10px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--surface);
+  color:var(--ink-2);
+  font-family:inherit;
+  font-size:12px;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.02em;
+  cursor:pointer;
+  transition:border-color .2s var(--ease), color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+}
+.custom-time-chip:hover { border-color:var(--line-strong); color:var(--ink); }
+.custom-time-chip.selected {
+  border-color:var(--accent);
+  color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 7%,var(--surface));
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 7%,transparent);
+}
+.custom-time-chip:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.field-hint { margin:0; color:var(--ink-3); font-size:11px; font-weight:600; line-height:1.5; }
+
+/* The finder toolbar is a grid with auto-sized trailing columns, so the trigger needs a
+   width floor or it collapses to the length of its longest option and clips the arrow. */
+.finder-toolbar .select-field { min-width:150px; }
+.finder-filters .select-field { min-width:0; }
+
 @media(max-width:1150px) {
   .page-area { padding:38px 28px 64px; }
   .tutor-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -575,7 +795,7 @@ h3 { font-size:18px; line-height:1.15; letter-spacing:-.025em; }
 .find-featured{display:grid;grid-template-columns:1.05fr .95fr;min-height:260px;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:var(--surface);box-shadow:var(--shadow-card)}
 .find-featured-art{position:relative;padding:28px;background:linear-gradient(145deg,#0E221D,#123B31 56%,color-mix(in srgb,var(--accent) 55%,#10211D));color:#fff;overflow:hidden}.find-featured-art::after{content:'';position:absolute;width:360px;height:360px;right:-160px;bottom:-180px;border:1px solid rgba(255,255,255,.08);border-radius:50%;box-shadow:0 0 0 32px rgba(255,255,255,.03),0 0 0 64px rgba(255,255,255,.02)}.find-featured-art span{position:relative;z-index:1;font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:rgba(255,255,255,.55)}.find-featured-art strong{position:absolute;z-index:1;left:28px;bottom:28px;font-size:46px;line-height:1.02;letter-spacing:-.06em;font-weight:600}
 .find-featured-copy{display:flex;flex-direction:column;justify-content:center;padding:34px}.find-featured-copy h2{margin-top:4px}.find-featured-copy>p{max-width:520px;margin-top:10px;color:var(--ink-2);font-size:14px;line-height:1.7}.process-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:25px}.process-row span{padding:12px;border-top:1px solid var(--line);font-size:10px;color:var(--ink-2)}.process-row b{display:block;margin-bottom:4px;color:var(--accent);font-family:ui-monospace,monospace}
-.finder-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.finder-search{min-height:44px;display:flex;align-items:center;gap:10px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface-soft)}.finder-search svg{color:var(--ink-3)}.finder-search input{min-width:0;flex:1;border:0;outline:none;background:transparent;color:var(--ink);font-size:13px}.finder-search button{border:0;background:transparent;color:var(--ink-3);display:grid;place-items:center}.sort-select{min-height:42px;border:1px solid var(--line);border-radius:9px;padding:0 12px;background:var(--surface);color:var(--ink);font-size:11px}.selected-control{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--surface))}.finder-filters{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:14px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--surface-soft)}.finder-filters select{width:100%;height:42px;border:1px solid var(--line);border-radius:9px;padding:0 10px;background:var(--surface);color:var(--ink)}.filter-toggle-row{display:flex;gap:7px;flex-wrap:wrap}.filter-toggle-row button{min-height:40px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink-2);font-size:11px;font-weight:800}.filter-toggle-row button.selected{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface))}.filter-note{display:flex;gap:8px;min-height:42px;align-items:center;padding:0 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink-2);font-size:10px;line-height:1.5}.subject-browse-row{display:flex;gap:7px;align-items:center;overflow:auto;padding-bottom:4px;scrollbar-width:none}.subject-browse-row::-webkit-scrollbar{display:none}.subject-browse-row .muted-label{flex:0 0 auto;margin-right:4px}.subject-browse-row .filter-chip{font-size:10px}.tutor-results{display:grid;gap:18px}
+.finder-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}.finder-search{min-height:44px;display:flex;align-items:center;gap:10px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface-soft)}.finder-search svg{color:var(--ink-3)}.finder-search input{min-width:0;flex:1;border:0;outline:none;background:transparent;color:var(--ink);font-size:13px}.finder-search button{border:0;background:transparent;color:var(--ink-3);display:grid;place-items:center}.selected-control{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--surface))}.finder-filters{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:14px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--surface-soft)}.filter-toggle-row{display:flex;gap:7px;flex-wrap:wrap}.filter-toggle-row button{min-height:40px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink-2);font-size:11px;font-weight:800}.filter-toggle-row button.selected{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,var(--surface))}.filter-note{display:flex;gap:8px;min-height:42px;align-items:center;padding:0 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink-2);font-size:10px;line-height:1.5}.subject-browse-row{display:flex;gap:7px;align-items:center;overflow:auto;padding-bottom:4px;scrollbar-width:none}.subject-browse-row::-webkit-scrollbar{display:none}.subject-browse-row .muted-label{flex:0 0 auto;margin-right:4px}.subject-browse-row .filter-chip{font-size:10px}.tutor-results{display:grid;gap:18px}
 
 /* Shared workspace pages */
 .workspace-header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}.workspace-header>div:first-child{max-width:860px}.workspace-header h1{margin-top:3px}.workspace-header p{max-width:760px;margin-top:15px;color:var(--ink-2);font-size:15px;line-height:1.7}.workspace-header-actions{display:flex;gap:8px;flex:0 0 auto}.workspace-list-card,.request-workspace-card,.request-history-card,.activity-feed-card,.subjects-manager-card,.profile-shortcuts{padding:24px;border:1px solid var(--line);border-radius:20px;background:var(--surface);box-shadow:var(--shadow-card)}
@@ -599,7 +819,24 @@ h3 { font-size:18px; line-height:1.15; letter-spacing:-.025em; }
 
 @media(max-width:1150px){.find-featured,.profile-hero-v2,.detail-content-grid,.availability-manager-grid,.profile-settings-grid{grid-template-columns:1fr}.profile-hero-art{min-height:260px}.calendar-workspace-body{grid-template-columns:1fr}.profile-side-column{grid-template-columns:repeat(3,1fr)}.profile-shortcut-grid{grid-template-columns:1fr}.finder-toolbar{grid-template-columns:1fr auto auto}.finder-search{grid-column:1 / -1}.finder-filters{grid-template-columns:1fr}.profile-mini-calendar{overflow:auto;grid-template-columns:repeat(7,minmax(100px,1fr))}}
 @media(max-width:860px){.home-primary-grid,.tutor-home-grid,.profile-shortcut-grid{grid-template-columns:1fr}.calendar-workspace-head,.workspace-header,.home-card-head,.request-workspace-head{align-items:flex-start;flex-direction:column}.calendar-controls{align-self:stretch;justify-content:flex-start}.week-strip{overflow:auto;grid-template-columns:repeat(7,minmax(92px,1fr))}.profile-side-column{grid-template-columns:1fr}.request-workspace-item{grid-template-columns:auto 1fr}.request-workspace-actions{grid-column:1 / -1;justify-content:flex-start}.workspace-session{grid-template-columns:60px minmax(0,1fr)}.workspace-session>.ghost-button{grid-column:2;justify-self:start}.profile-form-grid{grid-template-columns:1fr}.tutor-home-grid{grid-template-columns:1fr}.mini-week{grid-template-columns:repeat(5,minmax(94px,1fr));overflow:auto}}
-@media(max-width:620px){.finder-toolbar{grid-template-columns:1fr}.find-summary{text-align:left;width:100%}.process-row{grid-template-columns:1fr}.search-submit{display:none}.find-featured-art strong{position:relative !important;left:auto !important;bottom:auto !important;margin-top:24px !important;display:block !important;font-size:28px !important;line-height:1.15 !important}.profile-hero-identity{align-items:flex-start}.profile-hero-identity h1{font-size:37px}.profile-hero-stats{flex-wrap:wrap}.profile-hero-actions{flex-direction:column}.profile-hero-actions>*{width:100%}.profile-mini-calendar{overflow:auto}.slot-button-grid{grid-template-columns:1fr !important;gap:10px !important}.slot-button{flex-direction:column !important;align-items:flex-start !important;height:auto !important;padding:10px !important}.calendar-secondary-actions{align-items:flex-start;flex-direction:column}.availability-snapshot-grid{grid-template-columns:repeat(5,minmax(70px,1fr));overflow:auto}.tutor-next-detail{grid-template-columns:1fr}.home-card-actions{flex-direction:column}.home-card-actions>*{width:100%}.profile-form-footer{align-items:stretch;flex-direction:column}.workspace-session{grid-template-columns:1fr}.workspace-session-date{width:100%;min-height:52px;display:flex;justify-content:flex-start;gap:8px;padding:0 12px}.workspace-session>.ghost-button{grid-column:auto;width:100%}}
+@media(max-width:620px){.finder-toolbar{grid-template-columns:1fr}.find-summary{text-align:left;width:100%}
+/* A control inside a single-column toolbar would otherwise keep the desktop width floor
+   and push the Filters button onto a new row with clipped edges. */
+.finder-toolbar .select-field{min-width:0;width:100%}
+/* Date and Preferred time stack into one full-width column. The grid track is already 1fr
+   above this width, but the reserved indicator padding plus the value's own intrinsic
+   width can still push a two-up row past the viewport, so the fields are pinned to the
+   track width and the value is allowed to shrink instead of overflowing. */
+.custom-schedule-grid{grid-template-columns:1fr}
+.native-datetime,.custom-schedule-grid .custom-time-field{width:100%;max-width:100%;min-width:0}
+/* Eight hourly chips will not fit across a phone at the desktop track size, so the
+   track drops to two per row. The 84px floor is below a 2-column phone width once the
+   card padding is taken off, which is what keeps the row from spilling sideways. */
+.custom-time-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+/* A chip row is allowed to wrap, but a single chip wider than the phone would still
+   push the layout sideways, so break the label instead. */
+.select-chip{max-width:100%;overflow-wrap:anywhere}.select-trigger{min-width:0}.select-trigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.process-row{grid-template-columns:1fr}.search-submit{display:none}.find-featured-art strong{position:relative !important;left:auto !important;bottom:auto !important;margin-top:24px !important;display:block !important;font-size:28px !important;line-height:1.15 !important}.profile-hero-identity{align-items:flex-start}.profile-hero-identity h1{font-size:37px}.profile-hero-stats{flex-wrap:wrap}.profile-hero-actions{flex-direction:column}.profile-hero-actions>*{width:100%}.profile-mini-calendar{overflow:auto}.slot-button-grid{grid-template-columns:1fr !important;gap:10px !important}.slot-button{flex-direction:column !important;align-items:flex-start !important;height:auto !important;padding:10px !important}.calendar-secondary-actions{align-items:flex-start;flex-direction:column}.availability-snapshot-grid{grid-template-columns:repeat(5,minmax(70px,1fr));overflow:auto}.tutor-next-detail{grid-template-columns:1fr}.home-card-actions{flex-direction:column}.home-card-actions>*{width:100%}.profile-form-footer{align-items:stretch;flex-direction:column}.workspace-session{grid-template-columns:1fr}.workspace-session-date{width:100%;min-height:52px;display:flex;justify-content:flex-start;gap:8px;padding:0 12px}.workspace-session>.ghost-button{grid-column:auto;width:100%}}
 /* Destructive text actions are intentionally quieter than the primary CTA. */
 .text-danger { border:0; background:transparent; padding:6px 2px; color:var(--danger); font-weight:800; font-size:12px; }
 .text-danger:hover { text-decoration:underline; text-underline-offset:3px; }

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import TutorCard from '../components/TutorCard';
+import SelectField from '../components/SelectField';
 import { Icon } from '../components/icons';
 import { SUBJECTS, TUTORS } from '../data/mockData';
 
@@ -60,14 +61,16 @@ export default function FindTutorPage() {
 
       <section className="finder-toolbar">
         <div className="finder-search"><Icon name="search" size={19} /><input aria-label="Search tutors" value={search} onChange={(event) => { setSearch(event.target.value); updateParams(event.target.value, subject); }} placeholder="Search tutor or subject…" /><button type="button" onClick={() => { setSearch(''); updateParams('', subject); }} aria-label="Clear search"><Icon name="close" size={15} /></button></div>
-        <select className="sort-select" value={sort} onChange={(event) => setSort(event.target.value)} aria-label="Sort tutors"><option>Recommended</option><option>Rating</option><option>Sessions</option></select>
+        {/* A panel, not chips: the toolbar is a tight auto-sized column, and three
+            chips side by side would push Filters off the row on a narrow screen. */}
+        <SelectField label="Sort tutors" value={sort} onChange={setSort} options={['Recommended', 'Rating', 'Sessions']} />
         <button className={`ghost-button ${filtersOpen ? 'selected-control' : ''}`} type="button" onClick={() => setFiltersOpen((value) => !value)}><Icon name="filter" size={15} /> Filters</button>
         {activeSearch && <button className="ghost-button" type="button" onClick={reset}>Reset</button>}
       </section>
 
       {filtersOpen && (
         <section className="finder-filters">
-          <div><span className="field-label">Subject</span><select value={subject} onChange={(event) => { setSubject(event.target.value); updateParams(search, event.target.value); }}><option>All subjects</option>{SUBJECTS.map((item) => <option key={item}>{item}</option>)}</select></div>
+          <div><SelectField label="Subject" value={subject} onChange={(next) => { setSubject(next); updateParams(search, next); }} options={['All subjects', ...SUBJECTS]} placeholder="All subjects" /></div>
           <div><span className="field-label">Format</span><div className="filter-toggle-row">{['All formats', 'Online', 'Offline'].map((item) => <button type="button" key={item} className={mode === item ? 'selected' : ''} onClick={() => setMode(item)}>{item}</button>)}</div></div>
           <div><span className="field-label">Availability</span><div className="filter-note"><Icon name="calendar" size={15} /><span>Every tutor card shows their current open slots. Use the profile for the full calendar.</span></div></div>
         </section>

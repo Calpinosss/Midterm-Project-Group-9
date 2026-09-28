@@ -2,10 +2,20 @@ import React, { useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Avatar from '../components/Avatar';
 import ConfirmDialog from '../components/ConfirmDialog';
+import SelectField from '../components/SelectField';
 import { Icon } from '../components/icons';
 import { TUTORS } from '../data/mockData';
 import { CAMPUS_SPOTS, findSlot, indefiniteArticle, makeSlot, slotKey } from '../lib/slots';
 import { blockImplicitSubmit } from '../lib/forms';
+
+// A custom-time request is a request, not a booking, so the student is only proposing a
+// starting point and the tutor still confirms it. An input[type=time] would be the
+// obvious control, but its value is edited through a clock face that the OS paints: an
+// unstyled blue list that ignores the app's surfaces and reads nothing like the rest of
+// the form, and which cannot be themed from the page at all. Hourly chips are the same
+// precision the tutor's own published slots use, so nothing real is given up, and they
+// stay inside the document where the theme tokens apply.
+const CUSTOM_TIME_CHOICES = ['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
 // A published slot is a fixed commitment the tutor already made, so the student cannot
 // change its mode or invent a different meeting place. Only a custom-time request may
@@ -138,13 +148,31 @@ function BookingForm({ onCreateSession, availability = {} }) {
       <form className="booking-layout" onSubmit={submit} onKeyDown={blockImplicitSubmit}>
         <section className="form-card">
           <div className="form-section"><div className="form-section-head"><span className="form-step">01</span><div><h2>Tutor & subject</h2><p>Start with the person who can help.</p></div></div>
-            <div className="field-grid"><label>Tutor<select value={tutor} onChange={(event) => handleTutorChange(event.target.value)}>{TUTORS.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label><label>Subject<select value={subject} onChange={(event) => setSubject(event.target.value)}>{tutorData.subjects.map((item) => <option value={item} key={item}>{item}</option>)}</select></label></div>
+            <div className="field-grid"><SelectField label="Tutor" value={tutor} onChange={handleTutorChange} options={TUTORS.map((item) => ({ value: item.id, label: item.name }))} /><SelectField label="Subject" value={subject} onChange={setSubject} options={tutorData.subjects} /></div>
             <div className="mini-profile"><Avatar initials={tutorData.initials} accent={tutorData.accent} /><div><strong>{tutorData.name}</strong><span>{tutorData.rating} rating · {tutorData.sessions} sessions · {tutorData.participantsToday} today</span></div><Link className="text-link" to={`/tutor/${tutorData.id}`}>Profile <Icon name="arrowRight" size={14} /></Link></div>
           </div>
 
           <div className="form-section"><div className="form-section-head"><span className="form-step">02</span><div><h2>Schedule</h2><p>Use a visible slot or make a request.</p></div></div>
             <div className="choice-row"><button type="button" className={`choice-button ${!custom ? 'selected' : ''}`} onClick={() => chooseSchedule(false)}>Available slot<span>Pick what the tutor already published.</span></button><button type="button" className={`choice-button ${custom ? 'selected' : ''}`} onClick={() => chooseSchedule(true)}>Custom time<span>Ask the tutor to fit you in.</span></button></div>
-            <div className="field-grid"><label>Date{custom ? <input type="date" value={date} onChange={(event) => { setDate(event.target.value); setCustomTime(''); }} /> : <select value={date} onChange={(event) => { setDate(event.target.value); setTime(''); }}>{availableDates.map((item) => <option key={item} value={item}>{new Intl.DateTimeFormat('en', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(`${item}T12:00:00`))}</option>)}</select>}</label><label>{custom ? 'Preferred time' : 'Available time'}{custom ? <input type="time" value={customTime} onChange={(event) => setCustomTime(event.target.value)} /> : <select value={time} onChange={(event) => setTime(event.target.value)}><option value="">Select a slot</option>{availableTimes.map((slot) => <option value={slot.time} key={slotKey(slot)}>{slot.time} · {slot.mode}{slot.mode === 'Offline' ? ` · ${slot.location}` : ''}</option>)}</select>}</label></div>
+            <div className={`field-grid ${custom ? 'custom-schedule-grid' : ''}`}>{custom ? <label className="native-datetime">Date<input type="date" value={date} onChange={(event) => { setDate(event.target.value); setCustomTime(''); }} /></label> : <SelectField label="Date" value={date} onChange={(next) => { setDate(next); if (custom) setCustomTime(''); else setTime(''); }} options={availableDates.map((item) => ({ value: item, label: new Intl.DateTimeFormat('en', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(`${item}T12:00:00`)) }))} />}{!custom && <SelectField label="Available time" variant="dropdown" value={time} onChange={setTime} options={availableTimes.map((slot) => ({ value: slot.time, label: `${slot.time} · ${slot.mode}${slot.mode === 'Offline' ? ` · ${slot.location}` : ''}` }))} placeholder="Select a slot" />}
+              {custom && <div className="custom-time-field">
+                <span className="field-label" id="custom-time-label">Preferred time</span>
+                <div className="custom-time-grid" role="radiogroup" aria-labelledby="custom-time-label">
+                  {CUSTOM_TIME_CHOICES.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      role="radio"
+                      aria-checked={customTime === item}
+                      className={`custom-time-chip ${customTime === item ? 'selected' : ''}`}
+                      onClick={() => setCustomTime(item)}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+                <p className="field-hint">The tutor can accept, move, or suggest a different time for this request.</p>
+              </div>}</div>
             {custom && <div className="inline-note"><Icon name="spark" size={15} />The tutor can accept, decline, or suggest another time for this request.</div>}
             {custom ? <div className="field-grid"><div><span className="field-label">Session mode</span><div className="mode-toggle">{['Online', 'Offline'].map((item) => <button key={item} type="button" className={mode === item ? 'selected' : ''} onClick={() => setMode(item)}>{item}</button>)}</div></div>{mode === 'Offline' && <label>Location<input value={locationText} onChange={(event) => setLocationText(event.target.value)} placeholder="e.g. Library study zone" /></label>}</div> : <div className="locked-schedule-note"><Icon name="check" size={15} /><span>{selectedSlot ? <>This published slot is <strong>{selectedSlot.mode}</strong>{selectedSlot.mode === 'Offline' ? <> at <strong>{selectedSlot.location}</strong></> : null}. The mode and meeting place are set by the tutor, so they cannot be changed here — pick <strong>Custom time</strong> if you need a different arrangement.</> : <>Pick one of the tutor&rsquo;s published slots. Their mode and meeting place are set by the tutor, so they cannot be changed here — pick <strong>Custom time</strong> to request a different arrangement.</>}</span></div>}
           </div>
@@ -316,7 +344,7 @@ function AvailabilityForm({ onAddAvailability, availability = {}, tutorId }) {
   return (
     <div className="form-page">
       <div className="form-header"><div><span className="eyebrow">Form page · tutor flow</span><h1>Add an availability slot.</h1><p>Publish one more time that students can discover from your profile.</p></div><button className="back-button" onClick={() => navigate(-1)}><Icon name="arrowLeft" size={16} /> Back</button></div>
-      <form className="availability-form card-surface" onSubmit={submit} onKeyDown={blockImplicitSubmit}><div className="form-section"><div className="form-section-head"><span className="form-step">01</span><div><h2>Schedule</h2><p>Choose when the slot opens.</p></div></div><div className="field-grid"><label>Date<input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label><label>Start time<input type="time" value={time} onChange={(event) => setTime(event.target.value)} /></label><label>Duration<select value={duration} onChange={(event) => setDuration(event.target.value)}><option value="30">30 minutes</option><option value="60">60 minutes</option><option value="90">90 minutes</option></select></label></div></div><div className="form-section"><div className="form-section-head"><span className="form-step">02</span><div><h2>Mode</h2><p>Tell students how this slot works.</p></div></div><div className="mode-toggle wide">{['Online', 'Offline'].map((item) => <button type="button" className={mode === item ? 'selected' : ''} key={item} onClick={() => chooseMode(item)}>{item}</button>)}</div>{mode === 'Offline' && <label className="field-block">Meeting room<input list="campus-spots" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="e.g. Library study zone, 2nd floor" /><datalist id="campus-spots">{CAMPUS_SPOTS.map((spot) => <option value={spot} key={spot} />)}</datalist></label>}</div>{error && <div className="form-error large"><Icon name="x" size={17} /><span>{error}</span></div>}<div className="form-submit-row"><span className="submit-hint">This new slot will be added to your availability list.</span><button className="primary-button" type="submit">Publish slot <Icon name="arrowRight" size={16} /></button></div></form>
+      <form className="availability-form card-surface" onSubmit={submit} onKeyDown={blockImplicitSubmit}><div className="form-section"><div className="form-section-head"><span className="form-step">01</span><div><h2>Schedule</h2><p>Choose when the slot opens.</p></div></div><div className="field-grid"><label>Date<input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label><label>Start time<input type="time" value={time} onChange={(event) => setTime(event.target.value)} /></label><SelectField label="Duration" value={duration} onChange={setDuration} options={[{ value: '30', label: '30 minutes' }, { value: '60', label: '60 minutes' }, { value: '90', label: '90 minutes' }]} /></div></div><div className="form-section"><div className="form-section-head"><span className="form-step">02</span><div><h2>Mode</h2><p>Tell students how this slot works.</p></div></div><div className="mode-toggle wide">{['Online', 'Offline'].map((item) => <button type="button" className={mode === item ? 'selected' : ''} key={item} onClick={() => chooseMode(item)}>{item}</button>)}</div>{mode === 'Offline' && <label className="field-block">Meeting room<input list="campus-spots" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="e.g. Library study zone, 2nd floor" /><datalist id="campus-spots">{CAMPUS_SPOTS.map((spot) => <option value={spot} key={spot} />)}</datalist></label>}</div>{error && <div className="form-error large"><Icon name="x" size={17} /><span>{error}</span></div>}<div className="form-submit-row"><span className="submit-hint">This new slot will be added to your availability list.</span><button className="primary-button" type="submit">Publish slot <Icon name="arrowRight" size={16} /></button></div></form>
     </div>
   );
 }
