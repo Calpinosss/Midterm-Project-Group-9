@@ -16,7 +16,7 @@ class RegisterView(APIView):
                 {
                     "message": "User registered successfully",
                     "user": {
-                        "id": user.id,
+                        "id": str(user.id),
                         "username": user.username,
                         "email": user.email,
                     },
@@ -29,12 +29,15 @@ class RegisterView(APIView):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+
 class MeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        return Response({
-            "id": request.user.id,
-            "username": request.user.username,
-            "email": request.user.email,
-        })
+        return Response(
+            {
+                "id": str(request.user.id),
+                "username": request.user.username,
+                "email": request.user.email,
+            }
+        )
