@@ -84,7 +84,13 @@ h3 { font-size:18px; line-height:1.15; letter-spacing:-.025em; }
 .brand-compact .brand-mark { margin:0 auto; }
 .collapse-button { width:32px; height:32px; border-radius:8px; color:var(--ink-2); flex:0 0 auto; }
 .collapse-button:hover { background:var(--surface-soft); color:var(--ink); }
-.sidebar-is-collapsed .collapse-button { position:absolute; right:-13px; top:16px; background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow-card); }
+/* Collapsed, the rail leaves 76px - 28px of padding = 48px, but the brand mark (42px,
+   flex:0 0) and the toggle (32px, flex:0 0 auto) cannot shrink, so they cannot share one
+   row. Stacking them keeps the toggle inside the rail. Pulling it out with
+   position:absolute instead stranded it 13px over the page content. */
+.sidebar-is-collapsed .sidebar-top { flex-direction:column; gap:10px; padding:0 0 20px; }
+.sidebar-is-collapsed .brand-link { width:100%; }
+.sidebar-is-collapsed .collapse-button { background:var(--surface-soft); }
 .role-label { display:flex; align-items:center; gap:8px; padding:0 10px 15px; color:var(--ink-3); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
 .role-dot { width:7px; height:7px; border-radius:50%; background:var(--accent); }
 .sidebar-is-collapsed .role-label { justify-content:center; padding-inline:0; }
@@ -422,6 +428,11 @@ h3 { font-size:18px; line-height:1.15; letter-spacing:-.025em; }
   .main-content { margin-left:0; }
   .topbar { padding:0 16px; }
   .mobile-menu-button { display:grid; place-items:center; }
+  /* The drawer is opened from the topbar and closed with the scrim, so the desktop
+     collapse toggle has no job here. It used to sit in the drawer header where the
+     collapsed rule above detached it into a floating button at the panel edge. */
+  .collapse-button { display:none; }
+  .sidebar-is-collapsed .sidebar-top { flex-direction:row; justify-content:space-between; padding:0 4px 24px 4px; }
   .profile-copy { display:none; }
   .page-area { padding:34px 18px 54px; }
   .page-intro,.section-head-inline,.form-header { align-items:flex-start; flex-direction:column; }
