@@ -473,6 +473,31 @@ h3 { font-size:18px; line-height:1.15; letter-spacing:-.025em; }
   .success-actions > * { width:100%; }
   .topbar-context { display:none; }
 }
+@media(max-width:620px) {
+  /* Fix 1: Banner hijau agar teks judul tidak menumpuk tulisan kecil */
+  .find-featured-art strong {
+    position: relative !important;
+    left: auto !important;
+    bottom: auto !important;
+    margin-top: 24px !important;
+    display: block !important;
+    font-size: 28px !important;
+    line-height: 1.15 !important;
+  }
+
+  /* Fix 2: Slot jam agar tombol jam & lokasi tidak menabrak menyamping */
+  .slot-button-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .slot-button {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    height: auto !important;
+    padding: 10px !important;
+  }
+}
 
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after { animation-duration:.001ms !important; transition-duration:.001ms !important; scroll-behavior:auto !important; }
