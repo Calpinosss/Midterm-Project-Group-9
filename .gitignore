@@ -3,3 +3,17 @@ dist/
 .vite/
 .DS_Store
 *.log
+
+# Django / backend secrets. backend/.env holds MONGODB_URI with real credentials, so it
+# must never be committed. Only backend/.env_example is tracked.
+.env
+backend/.env
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.sqlite3

@@ -25,16 +25,20 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          # The app moved into frontend/, so the lockfile is no longer at the repo root.
+          cache-dependency-path: frontend/package-lock.json
       - name: Install
         run: npm install
+        working-directory: frontend
       - name: Build
         run: npm run build
+        working-directory: frontend
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: frontend/dist
   deploy:
     environment:
       name: github-pages

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     # Third-Party
     'rest_framework',
+    "rest_framework_simplejwt",
     "django_mongodb_backend",
 
     # Apps
