@@ -31,13 +31,36 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
+    "lmsuph.apps.MongoAdminConfig",
+    "lmsuph.apps.MongoAuthConfig",
+    "lmsuph.apps.MongoContentTypesConfig",
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Third-Party
+    'rest_framework',
+    "django_mongodb_backend",
+
+    # Apps
+    'users',
 ]
+
+AUTH_USER_MODEL = "users.User"
+DEFAULT_AUTO_FIELD = "django_mongodb_backend.fields.ObjectIdAutoField"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -72,10 +95,16 @@ WSGI_APPLICATION = 'lmsuph.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv(".env")
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django_mongodb_backend",
+        "HOST": os.getenv("MONGODB_URI"),
+        "NAME": "lmsuph",
     }
 }
 
