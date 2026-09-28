@@ -35,7 +35,7 @@ export default function NotificationPopover({ items, onClose }) {
           </Link>
         ))}
       </div>
-      <Link className="notification-footer" to="/notifications" onClick={onClose}>View all notifications <Icon name="arrowRight" size={14} /></Link>
+      <Link className="notification-footer" to="/activity" onClick={onClose}>Go to activity <Icon name="arrowRight" size={14} /></Link>
     </div>
   );
 }

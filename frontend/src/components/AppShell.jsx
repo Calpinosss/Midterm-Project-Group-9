@@ -12,7 +12,6 @@ const studentNav = [
   { label: 'Find a Tutor', to: '/find', icon: 'search' },
   { label: 'Requests', to: '/requests', icon: 'users' },
   { label: 'My Sessions', to: '/sessions', icon: 'calendar' },
-  { label: 'Activity', to: '/activity', icon: 'spark' },
 ];
 
 const tutorNav = [
@@ -69,8 +68,12 @@ export default function AppShell({ user, children, collapsed, setCollapsed, onOp
 
         <div className="sidebar-spacer" />
         <div className="sidebar-foot">
-          <NavLink className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} to="/notifications" title={collapsed ? 'Notifications' : undefined}>
-            <Icon name="bell" size={18} /><span>Notifications</span>{!collapsed && <span className="nav-count">{notifications.length}</span>}
+          {/* Activity now carries the unread count that used to sit on the removed
+              Notifications item, so the badge follows the notification data rather than a
+              sidebar entry that no longer exists. The panel itself is still opened from
+              the topbar bell, which is untouched. */}
+          <NavLink className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} to="/activity" title={collapsed ? 'Activity' : undefined}>
+            <Icon name="spark" size={18} /><span>Activity</span>{!collapsed && <span className="nav-count">{notifications.length}</span>}
           </NavLink>
           <NavLink className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} to="/profile" title={collapsed ? 'Profile' : undefined}>
             <Icon name="profile" size={18} /><span>Profile</span>
