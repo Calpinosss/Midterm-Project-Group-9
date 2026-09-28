@@ -432,7 +432,16 @@ h3 { font-size:18px; line-height:1.15; letter-spacing:-.025em; }
      collapse toggle has no job here. It used to sit in the drawer header where the
      collapsed rule above detached it into a floating button at the panel edge. */
   .collapse-button { display:none; }
+  /* The collapsed rail state is persisted in localStorage as pcl-sidebar-v7, so it
+     survives a viewport change. At this width the drawer is a full 252px panel, so the
+     icon-only overrides have to be undone or the drawer opens with no labels at all and
+     the nav items become unlabelled icons. */
   .sidebar-is-collapsed .sidebar-top { flex-direction:row; justify-content:space-between; padding:0 4px 24px 4px; }
+  .sidebar-is-collapsed .brand-link { width:auto; }
+  .sidebar-is-collapsed .role-label { justify-content:flex-start; padding-inline:10px; }
+  .sidebar-is-collapsed .role-label span:last-child,.sidebar-is-collapsed .brand-wordmark { display:inline; }
+  .sidebar-is-collapsed .nav-item { justify-content:flex-start; padding:0 11px; }
+  .sidebar-is-collapsed .nav-item span { display:inline; }
   .profile-copy { display:none; }
   .page-area { padding:34px 18px 54px; }
   .page-intro,.section-head-inline,.form-header { align-items:flex-start; flex-direction:column; }
