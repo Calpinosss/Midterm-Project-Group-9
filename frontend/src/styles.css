@@ -833,6 +833,38 @@ h3 { font-size:18px; line-height:1.15; letter-spacing:-.025em; }
    track drops to two per row. The 84px floor is below a 2-column phone width once the
    card padding is taken off, which is what keeps the row from spilling sideways. */
 .custom-time-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+/* Notification flyout on a phone.
+
+   On desktop this is `position:absolute` inside `.notification-anchor`, which is the
+   relative box around the bell, so `right:0` lines the panel up with the icon. That
+   anchor is the only reason the panel is placed, and on mobile the topbar row reflows:
+   the actions group can sit further left than the viewport edge the anchor was measured
+   against, so the same right-anchored box lands partly off screen and the header and
+   item text are clipped. Taking the panel out of the anchor flow and pinning it to the
+   viewport removes the dependency on where the bell happens to sit. */
+.notification-popover{
+  position:fixed !important;
+  top:60px !important;
+  left:12px !important;
+  right:12px !important;
+  width:calc(100vw - 24px) !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  z-index:9999 !important;
+  /* The panel can now be taller than the space under the topbar, so it scrolls inside
+     itself rather than running off the bottom of the screen. */
+  max-height:calc(100dvh - 72px) !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+}
+/* The list is a grid whose text column has no min-width:0, so a long unbroken body
+   string sets the column floor and pushes the row wider than the panel. */
+.notification-list,.notification-head{min-width:0}
+.notification-item{min-width:0}
+.notification-item>div{min-width:0;overflow-wrap:anywhere}
+.notification-item strong,.notification-item p{overflow-wrap:anywhere}
+.notification-head strong{overflow-wrap:anywhere}
+.notification-footer{min-width:0;text-align:center;overflow-wrap:anywhere}
 /* A chip row is allowed to wrap, but a single chip wider than the phone would still
    push the layout sideways, so break the label instead. */
 .select-chip{max-width:100%;overflow-wrap:anywhere}.select-trigger{min-width:0}.select-trigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
