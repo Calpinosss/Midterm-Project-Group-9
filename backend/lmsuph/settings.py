@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "lmsuph.apps.MongoAdminConfig",
     "lmsuph.apps.MongoAuthConfig",
     "lmsuph.apps.MongoContentTypesConfig",
+
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -61,6 +62,12 @@ from datetime import timedelta
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+}
+
+MIGRATION_MODULES = {
+    "admin": "mongo_migrations.admin",
+    "auth": "mongo_migrations.auth",
+    "contenttypes": "mongo_migrations.contenttypes",
 }
 
 MIDDLEWARE = [

@@ -4,9 +4,9 @@ dist/
 .DS_Store
 *.log
 
-# Django / backend secrets. backend/.env holds MONGODB_URI with real credentials, so it
-# must never be committed. Only backend/.env_example is tracked.
+# Environment / secrets
 .env
+.env.*
 backend/.env
 *.pem
 *.key
@@ -14,6 +14,9 @@ backend/.env
 # Python
 __pycache__/
 *.py[cod]
+*.pyc
+*.pyo
+*.pyd
 .venv/
 venv/
 *.sqlite3
